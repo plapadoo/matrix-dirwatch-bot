@@ -5,65 +5,39 @@ import Test.Framework (defaultMain)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.TH (defaultMainGenerator)
 import Test.HUnit(assertFailure,assertBool,assertEqual)
-import GMB.Gitlab.Conversion(convertGitlabEvent)
-import GMB.Gitlab.RepoMapping(readRepoMappingText,rooms,Room(..),roomsForEntity,RoomEntity(..),Repo(..))
+import GMB.Dirwatch.Conversion(convertDirwatchEvents)
+import GMB.Dirwatch.INotify(NotifyEvent(..),Event(..))
+import Data.Bool(Bool(..),not)
 import GMB.IncomingMessage(plainBody,markupBody)
 import Prelude()
 import System.IO(IO)
-import Data.ByteString.Lazy(readFile)
-import Data.Aeson(decode)
 import Data.Functor((<$>))
 import Control.Monad(return)
-import Data.Maybe(Maybe(..))
+import Data.Maybe(Maybe(..),fromJust)
 import Data.Text.IO(putStrLn)
 import Data.Text(isInfixOf)
-import Plpd.Util(textShow)
-import Control.Lens((^.))
+import Control.Lens((^.),to)
 import Data.Either(Either(..))
-import Data.Function(($))
+import Data.Function(($),(.))
 import Data.Monoid((<>))
+import Plpd.Util(textShow)
 
-case_simpleRepoMapping =
-  case readRepoMappingText "room=repo1,repo2" of
-    Left e -> assertFailure $ "error parsing repo mapping: " <> e
-    Right result -> do
-      assertEqual "invalid rooms" [Room "room"] (rooms result)
-      assertEqual "invalid entities" [Room "room"] (roomsForEntity result (RoomToRepo (Repo "repo1" )))
-      assertEqual "invalid entities" [Room "room"] (roomsForEntity result (RoomToRepo (Repo "repo2" )))
+case_singleConversion =
+  case convertDirwatchEvents [NotifyEvent "foo" (Modified False (Just "bar"))] of
+    Nothing -> return ()
+    Just result -> do
+      putStrLn (textShow result)
+      assertBool "doesn't contain \"modified\"" ("modified" `isInfixOf` (result ^. plainBody))
+      assertBool "contains list" (not ("<li>" `isInfixOf` (result ^. markupBody . to fromJust)) )
 
-case_conversionForPushEvent = do
-  gitlabEvent <- ( convertGitlabEvent <$> ) <$> decode <$> readFile "test/data/push.json"
-  case gitlabEvent of
-    Nothing -> assertFailure "couldn't convert input json (push)"
-    Just event -> do
-      putStrLn (textShow event)
-      assertBool "author is preserved in plain" ("John Smith" `isInfixOf` (event ^. plainBody ))
-      case event ^. markupBody of
-        Nothing -> assertFailure "no markup"
-        Just markup -> assertBool "author is preserved in markup" ("John Smith" `isInfixOf` markup)
 
-case_conversionForIssueEvent = do
-  gitlabEvent <- ( convertGitlabEvent <$> ) <$> decode <$> readFile "test/data/issue.json"
-  case gitlabEvent of
-    Nothing -> assertFailure "couldn't convert input json (push)"
-    Just event -> do
-      putStrLn (textShow event)
-      assertBool "author is preserved in plain" ("Plato" `isInfixOf` (event ^. plainBody ))
-      case event ^. markupBody of
-        Nothing -> assertFailure "no markup"
-        Just markup -> assertBool "author is preserved in markup" ("Plato" `isInfixOf` markup)
-
-case_conversionForCommentEvent = do
-  gitlabEvent <- ( convertGitlabEvent <$> ) <$> decode <$> readFile "test/data/comment.json"
-  case gitlabEvent of
-    Nothing -> assertFailure "couldn't convert input json (push)"
-    Just event -> do
-      putStrLn (textShow event)
-      assertBool "author is preserved in plain" ("Plato" `isInfixOf` (event ^. plainBody ))
-      assertBool "commented is contained plain" ("commented" `isInfixOf` (event ^. plainBody ))
-      case event ^. markupBody of
-        Nothing -> assertFailure "no markup"
-        Just markup -> assertBool "commented is preserved in markup" ("commented" `isInfixOf` markup)
+case_listConversion =
+  case convertDirwatchEvents [NotifyEvent "foo" (Modified False (Just "bar")),NotifyEvent "bar" (Modified False (Just "baz"))] of
+    Nothing -> return ()
+    Just result -> do
+      putStrLn (textShow result)
+      assertBool "doesn't contain \"modified\"" ("modified" `isInfixOf` (result ^. plainBody))
+      assertBool "doesn't contain list" ("<li>" `isInfixOf` (result ^. markupBody . to fromJust))
 
 main :: IO ()
 main = $(defaultMainGenerator)
