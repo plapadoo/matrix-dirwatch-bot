@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module GMB.Dirwatch.Conversion
+module Web.Matrix.Dirwatch.Conversion
   ( convertDirwatchEvents
   ) where
 
@@ -16,8 +16,8 @@ import qualified Data.Text as Text
 import Data.Text.Format (format)
 import Data.Text.Format (format)
 import Data.Text.Lazy (toStrict)
-import GMB.Dirwatch.INotify (NotifyEvent(..), Event(..))
-import GMB.IncomingMessage
+import Web.Matrix.Dirwatch.INotify (NotifyEvent(..), Event(..))
+import Web.Matrix.Bot.IncomingMessage
        (IncomingMessage, constructIncomingMessageLazy,
         constructIncomingMessage)
 import Plpd.Util (textShow, surroundHtml)

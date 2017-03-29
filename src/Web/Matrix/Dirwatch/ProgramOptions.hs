@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module GMB.Dirwatch.ProgramOptions
+module Web.Matrix.Dirwatch.ProgramOptions
   ( ProgramOptions(..)
   , readProgramOptions
   , poBotUrl

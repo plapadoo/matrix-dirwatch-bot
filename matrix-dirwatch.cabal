@@ -15,9 +15,9 @@ extra-source-files:  README.md
 
 library
   hs-source-dirs:      src
-  exposed-modules:     GMB.Dirwatch.ProgramOptions
-                     , GMB.Dirwatch.Conversion
-                     , GMB.Dirwatch.INotify
+  exposed-modules:     Web.Matrix.Dirwatch.ProgramOptions
+                     , Web.Matrix.Dirwatch.Conversion
+                     , Web.Matrix.Dirwatch.INotify
   build-depends:       base >= 4.7 && < 5
                      , optparse-applicative
                      , monad-loops

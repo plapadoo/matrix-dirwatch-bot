@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module GMB.Gitlab.API
+module Web.Matrix.Dirwatch.API
   ( GitlabEvent
   , eventObjectKind
   , objectState

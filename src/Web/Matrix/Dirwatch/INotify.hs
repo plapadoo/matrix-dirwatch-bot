@@ -1,4 +1,4 @@
-module GMB.Dirwatch.INotify
+module Web.Matrix.Dirwatch.INotify
   ( watchDirectoryRecursive
   , recursiveSubdirs
   , stopWatch
