@@ -39,7 +39,7 @@ convertEvent (NotifyEvent path event) =
     Deleted _ fp -> Just ("deleted " <> Text.pack (path </> fp))
     _ -> Nothing
 
-convertDirwatchEvents :: [NotifyEvent] -> Maybe IncomingMessage
+convertDirwatchEvents :: [NotifyEvent] -> Maybe (IncomingMessage Text.Text Text.Text)
 convertDirwatchEvents events =
   case catMaybes (convertEvent <$> events) of
     [] -> Nothing
