@@ -23,6 +23,7 @@ library
                      , monad-loops
                      , stm
                      , directory
+                     , lucid
                      , filepath
                      , matrix-bot-api
                      , hinotify

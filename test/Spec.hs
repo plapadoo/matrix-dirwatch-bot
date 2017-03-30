@@ -8,7 +8,7 @@ import Test.HUnit(assertFailure,assertBool,assertEqual)
 import Web.Matrix.Dirwatch.Conversion(convertDirwatchEvents)
 import Web.Matrix.Dirwatch.INotify(NotifyEvent(..),Event(..))
 import Data.Bool(Bool(..),not)
-import GMB.IncomingMessage(plainBody,markupBody)
+import Web.Matrix.Bot.IncomingMessage(plainBody,markupBody)
 import Prelude()
 import System.IO(IO)
 import Data.Functor((<$>))
@@ -28,7 +28,7 @@ case_singleConversion =
     Just result -> do
       putStrLn (textShow result)
       assertBool "doesn't contain \"modified\"" ("modified" `isInfixOf` (result ^. plainBody))
-      assertBool "contains list" (not ("<li>" `isInfixOf` (result ^. markupBody . to fromJust)) )
+      assertBool "contains list" (not ("<li>" `isInfixOf` (result ^. markupBody . to fromJust . to textShow)) )
 
 
 case_listConversion =
@@ -37,7 +37,7 @@ case_listConversion =
     Just result -> do
       putStrLn (textShow result)
       assertBool "doesn't contain \"modified\"" ("modified" `isInfixOf` (result ^. plainBody))
-      assertBool "doesn't contain list" ("<li>" `isInfixOf` (result ^. markupBody . to fromJust))
+      assertBool "doesn't contain list" ("<li>" `isInfixOf` (result ^. markupBody . to fromJust . to textShow))
 
 main :: IO ()
 main = $(defaultMainGenerator)
