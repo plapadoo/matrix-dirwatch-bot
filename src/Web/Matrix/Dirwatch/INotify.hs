@@ -4,6 +4,8 @@ module Web.Matrix.Dirwatch.INotify
   , stopWatch
   , Monitor
   , watchRecursiveBuffering
+  , transformPath
+  , makeRelative
   , unbuffer
   , NotifyEvent(..)
   , Event(..)
@@ -22,17 +24,20 @@ import Control.Monad.STM (atomically, STM)
 import Data.Bool (Bool(..))
 import Data.Function (($), (.))
 import Data.Functor ((<$>))
-import Data.List (concat, filter)
+import Data.List (concat, filter,drop,length)
 import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
 import Prelude (undefined, (*))
 import System.Directory (doesDirectoryExist, listDirectory)
-import System.FilePath (FilePath, (</>))
+import System.FilePath (FilePath, (</>),splitPath,joinPath)
 import System.INotify
        (Event(..), EventVariety(AllEvents), INotify, addWatch,
         initINotify, killINotify)
 import System.IO (IO, print, putStrLn)
 import Text.Show (show)
+
+makeRelative :: FilePath -> FilePath -> FilePath
+makeRelative relativeTo = joinPath . drop (length (splitPath relativeTo)) . splitPath
 
 data Monitor = Monitor
   { monitorStop :: Chan ()
@@ -57,6 +62,9 @@ recursiveSubdirs dir = do
 data NotifyEvent =
   NotifyEvent FilePath
               Event
+
+transformPath :: (FilePath -> FilePath) -> NotifyEvent -> NotifyEvent
+transformPath f (NotifyEvent path event) = NotifyEvent (f path) event
 
 watchDirectoryRecursive'
   :: MonadIO m
