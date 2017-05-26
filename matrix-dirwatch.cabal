@@ -1,7 +1,7 @@
 name:                matrix-dirwatch
 version:             0.1.0.0
--- synopsis:
--- description:
+synopsis:            Watch directory changes and post them to a Matrix channel
+description:         Watch directory changes and post them to a Matrix channel
 homepage:            https://github.com/githubuser/matrix-dirwatch#readme
 license:             BSD3
 license-file:        LICENSE

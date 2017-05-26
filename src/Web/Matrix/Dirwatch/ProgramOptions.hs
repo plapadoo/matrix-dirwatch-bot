@@ -6,9 +6,10 @@ module Web.Matrix.Dirwatch.ProgramOptions
   , poBotUrl
   , poRoomName
   , poDirectory
+  , poExclude
   ) where
 
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), (<*>),many)
 import Control.Lens (makeLenses)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Monoid ((<>))
@@ -22,6 +23,7 @@ import System.IO (IO)
 data ProgramOptions = ProgramOptions
   { _poBotUrl :: Text
   , _poRoomName :: Text
+  , _poExclude :: [Text]
   , _poDirectory :: FilePath
   }
 
@@ -32,6 +34,7 @@ programOptionsParser =
   ProgramOptions <$>
   textOption (OptAppl.long "bot-url" <> OptAppl.help "matrix bot URL") <*>
   textOption (OptAppl.long "room-name" <> OptAppl.help "internal matrix room ID") <*>
+  many ( textOption (OptAppl.long "exclude" <> OptAppl.help "exclusion string") ) <*>
   OptAppl.strOption (OptAppl.long "directory" <> OptAppl.help "directory to watch")
 
 readProgramOptions
