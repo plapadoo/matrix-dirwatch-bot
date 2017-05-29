@@ -33,7 +33,7 @@ import System.FilePath (FilePath, (</>),splitPath,joinPath)
 import System.INotify
        (Event(..), EventVariety(AllEvents), INotify, addWatch,
         initINotify, killINotify)
-import System.IO (IO, print, putStrLn)
+import System.IO (IO)
 import Text.Show (show)
 
 makeRelative :: FilePath -> FilePath -> FilePath
@@ -72,7 +72,7 @@ watchDirectoryRecursive'
 watchDirectoryRecursive' inotify fp cb = do
   subDirs <- recursiveSubdirs fp
   forM_ (fp : subDirs) $ \dir -> do
-    liftIO $ putStrLn $ "Watching directory: " <> dir
+    -- liftIO $ putStrLn $ "Watching directory: " <> dir
     liftIO $
       void $
       addWatch inotify [AllEvents] dir (\event -> cb (NotifyEvent dir event))
@@ -87,7 +87,7 @@ watchDirectoryRecursive fp cb = do
   let innerCb (NotifyEvent filePath event) =
         case event of
           Created True path -> do
-            liftIO $ putStrLn $ "directory was created:" <> (filePath </> path)
+            -- liftIO $ putStrLn $ "directory was created:" <> (filePath </> path)
             watchDirectoryRecursive' inotify (filePath </> path) innerCb
             cb $ NotifyEvent (filePath </> path) event
           _ -> cb $ NotifyEvent filePath event
@@ -95,7 +95,7 @@ watchDirectoryRecursive fp cb = do
     void $
     forkIO $ do
       watchDirectoryRecursive' inotify fp innerCb
-      liftIO $ putStrLn "waiting"
+      -- liftIO $ putStrLn "waiting"
       liftIO $ void $ readChan stopChan
       liftIO $ killINotify inotify
       liftIO $ writeChan stoppedChan ()
