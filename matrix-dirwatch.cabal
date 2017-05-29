@@ -17,11 +17,13 @@ library
   hs-source-dirs:      src
   exposed-modules:     Web.Matrix.Dirwatch.ProgramOptions
                      , Web.Matrix.Dirwatch.Conversion
+                     , Web.Matrix.Dirwatch.ConfigOptions
                      , Web.Matrix.Dirwatch.INotify
   build-depends:       base >= 4.7 && < 5
                      , optparse-applicative
                      , monad-loops
                      , stm
+                     , configurator
                      , directory
                      , lucid
                      , filepath

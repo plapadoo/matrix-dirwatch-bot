@@ -6,9 +6,10 @@ module Main where
 
 import Data.Maybe(Maybe(..))
 import Control.Monad(return,void)
-import Web.Matrix.Dirwatch.ProgramOptions(readProgramOptions,poBotUrl,poRoomName,poDirectory,poExclude)
+import Web.Matrix.Dirwatch.ProgramOptions(readProgramOptions,poConfigFile)
 import Web.Matrix.Dirwatch.INotify(watchRecursiveBuffering,unbuffer,transformPath,makeRelative,NotifyEvent(..))
 import Web.Matrix.Dirwatch.Conversion(convertDirwatchEvents)
+import Web.Matrix.Dirwatch.ConfigOptions (ConfigOptions, readConfigOptions,coDirectory,coRoomName,coBotUrl,coExclude)
 import Web.Matrix.Bot.IncomingMessage(IncomingMessage)
 import Web.Matrix.Bot.API(sendMessage)
 import Control.Lens((^.))
@@ -30,8 +31,9 @@ eventBlacklist blacklists (NotifyEvent path _) = none (`isInfixOf` pack path) bl
 main :: IO ()
 main = do
   options <- readProgramOptions
-  watcher <- watchRecursiveBuffering (options ^. poDirectory)
+  configOptions <- readConfigOptions (options ^. poConfigFile)
+  watcher <- watchRecursiveBuffering (configOptions ^. coDirectory)
   unbuffer watcher $ \events ->
-    case convertDirwatchEvents (transformPath (makeRelative (options ^. poDirectory)) <$> (filter (eventBlacklist (options ^. poExclude)) events)) of
+    case convertDirwatchEvents (transformPath (makeRelative (configOptions ^. coDirectory)) <$> (filter (eventBlacklist (configOptions ^. coExclude)) events)) of
       Nothing -> return ()
-      Just message -> void $ sendMessage (options ^. poBotUrl) (options ^. poRoomName) message
+      Just message -> void $ sendMessage (configOptions ^. coBotUrl) (configOptions ^. coRoomName) message
