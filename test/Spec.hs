@@ -1,27 +1,23 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 
-import Test.Framework (defaultMain)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.TH (defaultMainGenerator)
-import Test.HUnit(assertFailure,assertBool,assertEqual)
+import Test.HUnit(assertBool)
 import Web.Matrix.Dirwatch.Conversion(convertDirwatchEvents)
 import Web.Matrix.Dirwatch.INotify(NotifyEvent(..),Event(..))
 import Data.Bool(Bool(..),not)
 import Web.Matrix.Bot.IncomingMessage(plainBody,markupBody)
 import Prelude()
 import System.IO(IO)
-import Data.Functor((<$>))
 import Control.Monad(return)
 import Data.Maybe(Maybe(..),fromJust)
 import Data.Text.IO(putStrLn)
 import Data.Text(isInfixOf)
 import Control.Lens((^.),to)
-import Data.Either(Either(..))
-import Data.Function(($),(.))
-import Data.Monoid((<>))
+import Data.Function((.))
 import Plpd.Util(textShow)
 
+case_singleConversion :: IO ()
 case_singleConversion =
   case convertDirwatchEvents [NotifyEvent "foo" (Modified False (Just "bar"))] of
     Nothing -> return ()
@@ -31,6 +27,7 @@ case_singleConversion =
       assertBool "contains list" (not ("<li>" `isInfixOf` (result ^. markupBody . to fromJust . to textShow)) )
 
 
+case_listConversion :: IO ()
 case_listConversion =
   case convertDirwatchEvents [NotifyEvent "foo" (Modified False (Just "bar")),NotifyEvent "bar" (Modified False (Just "baz"))] of
     Nothing -> return ()

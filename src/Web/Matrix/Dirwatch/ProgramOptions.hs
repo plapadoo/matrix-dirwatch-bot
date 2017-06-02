@@ -6,16 +6,12 @@ module Web.Matrix.Dirwatch.ProgramOptions
   , poConfigFile
   ) where
 
-import Control.Applicative ((<$>), (<*>),many)
-import Control.Lens (makeLenses)
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Monoid ((<>))
-import Data.Text (Text)
-import qualified Options.Applicative as OptAppl
-import Options.Applicative.Text (textOption)
-import Prelude (Int)
-import System.FilePath (FilePath)
-import System.IO (IO)
+import           Control.Applicative      ((<$>), (<*>))
+import           Control.Lens             (makeLenses)
+import           Control.Monad.IO.Class   (MonadIO, liftIO)
+import           Data.Monoid              ((<>))
+import qualified Options.Applicative      as OptAppl
+import           System.FilePath          (FilePath)
 
 data ProgramOptions = ProgramOptions
   { _poConfigFile :: FilePath
