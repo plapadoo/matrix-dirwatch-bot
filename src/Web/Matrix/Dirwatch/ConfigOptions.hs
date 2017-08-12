@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 
 module Web.Matrix.Dirwatch.ConfigOptions
   ( ConfigOptions(..)
@@ -9,30 +10,36 @@ module Web.Matrix.Dirwatch.ConfigOptions
   , coDirectory
   ) where
 
-import Control.Applicative ((<*>))
-import Control.Lens (makeLenses)
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Configurator (Worth(..), load, require)
-import Data.Configurator.Types (Config,Name,Configured)
-import Data.Functor ((<$>))
-import qualified Data.Text as Text
-import System.FilePath(FilePath)
+import           Control.Lens           (Getter, to)
+import Data.Foldable(toList)
+import           Data.Function          ((.))
+import           Data.Functor           ((<$>))
+import           Data.String            (String, fromString)
+import qualified Data.Text              as Text
+import qualified Dhall                  as Dhall
+import           GHC.Generics           (Generic)
+import           Plpd.Dhall             (toString, toText)
+import           System.FilePath        (FilePath)
+import           System.IO              (IO)
 
 data ConfigOptions = ConfigOptions
-  { _coBotUrl :: Text.Text
-  , _coRoomName :: Text.Text
-  , _coExclude :: [Text.Text]
-  , _coDirectory :: FilePath
-  }
+    { botUrl    :: Dhall.Text
+    , roomName  :: Dhall.Text
+    , exclude   :: Dhall.Vector Dhall.Text
+    , directory :: Dhall.Text
+    } deriving(Generic,Dhall.Interpret)
 
-makeLenses ''ConfigOptions
+readConfigOptions :: String -> IO ConfigOptions
+readConfigOptions = Dhall.detailed . Dhall.input Dhall.auto . fromString
 
-requireLift :: (Configured a, MonadIO m) => Config -> Name -> m a
-requireLift config key = liftIO (require config key)
+coDirectory :: Getter ConfigOptions FilePath
+coDirectory = to (toString . directory)
 
-readConfigOptions
-  :: MonadIO m
-  => FilePath -> m ConfigOptions
-readConfigOptions configFilePath = do
-  config <- liftIO (load [Required configFilePath])
-  ConfigOptions <$> (requireLift config "bot-url") <*> (requireLift config "room-name") <*> (requireLift config "exclude") <*> (requireLift config "directory")
+coExclude :: Getter ConfigOptions ([Text.Text])
+coExclude = to (\x -> toList (((toText <$>) . exclude) x))
+
+coRoomName :: Getter ConfigOptions Text.Text
+coRoomName = to (toText . roomName)
+
+coBotUrl :: Getter ConfigOptions Text.Text
+coBotUrl = to (toText . botUrl)

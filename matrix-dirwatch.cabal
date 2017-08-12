@@ -23,7 +23,7 @@ library
                      , optparse-applicative
                      , monad-loops
                      , stm
-                     , configurator
+                     , dhall
                      , directory
                      , lucid
                      , filepath
