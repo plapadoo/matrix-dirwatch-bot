@@ -10,17 +10,17 @@ module Web.Matrix.Dirwatch.ConfigOptions
   , coDirectory
   ) where
 
-import           Control.Lens           (Getter, to)
-import Data.Foldable(toList)
-import           Data.Function          ((.))
-import           Data.Functor           ((<$>))
-import           Data.String            (String, fromString)
-import qualified Data.Text              as Text
-import qualified Dhall                  as Dhall
-import           GHC.Generics           (Generic)
-import           Plpd.Dhall             (toString, toText)
-import           System.FilePath        (FilePath)
-import           System.IO              (IO)
+import           Control.Lens    (Getter, to)
+import           Data.Foldable   (toList)
+import           Data.Function   ((.))
+import           Data.Functor    ((<$>))
+import           Data.String     (String, fromString)
+import qualified Data.Text       as Text
+import qualified Dhall           as Dhall
+import           GHC.Generics    (Generic)
+import           Plpd.Dhall      (toString, toText)
+import           System.FilePath (FilePath)
+import           System.IO       (IO)
 
 data ConfigOptions = ConfigOptions
     { botUrl    :: Dhall.Text
