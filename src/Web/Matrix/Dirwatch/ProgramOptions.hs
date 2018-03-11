@@ -3,18 +3,21 @@
 module Web.Matrix.Dirwatch.ProgramOptions
   ( ProgramOptions(..)
   , readProgramOptions
-  , poConfigFile
+  , poDirectory
+  , poExclusions
   ) where
 
-import           Control.Applicative      ((<$>), (<*>))
-import           Control.Lens             (makeLenses)
-import           Control.Monad.IO.Class   (MonadIO, liftIO)
-import           Data.Monoid              ((<>))
-import qualified Options.Applicative      as OptAppl
-import           System.FilePath          (FilePath)
+import           Control.Applicative    ((<$>), (<*>))
+import           Control.Lens           (makeLenses)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Monoid            ((<>))
+import           Data.String            (String)
+import qualified Options.Applicative    as OptAppl
+import           System.FilePath        (FilePath)
 
 data ProgramOptions = ProgramOptions
-  { _poConfigFile :: FilePath
+  { _poDirectory  :: FilePath
+  , _poExclusions :: [String]
   }
 
 makeLenses ''ProgramOptions
@@ -23,9 +26,13 @@ programOptionsParser :: OptAppl.Parser ProgramOptions
 programOptionsParser =
   ProgramOptions <$>
     OptAppl.strOption
-        (OptAppl.long "config-file" <>
-         OptAppl.help "Where to put the config file" <>
-         OptAppl.value "/etc/matrix-bot/matrix-dirwatch-bot.dhall")
+        (OptAppl.long "directory" <>
+         OptAppl.help "The directory to watch")
+        <*>
+        OptAppl.many (
+            OptAppl.strOption
+            (OptAppl.long "exclude" <>
+            OptAppl.help "Exclude a directory"))
 
 readProgramOptions
   :: MonadIO m
@@ -38,4 +45,4 @@ readProgramOptions = liftIO (OptAppl.execParser opts)
         (OptAppl.fullDesc <>
          OptAppl.progDesc
            "Listen for directory changes" <>
-         OptAppl.header "matrix-dirwatch - send directory change events to matrix")
+         OptAppl.header "matrix-dirwatch - send directory change events to stdout to be sent to matrix")

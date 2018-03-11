@@ -1,36 +1,39 @@
 module Main where
 
+import           Control.Applicative                (pure)
 import           Control.Lens                       ((^.))
-import           Control.Monad                      (return, void)
 import           Data.Bool                          (Bool (..), not)
-import           Data.Foldable                      (any)
-import           Data.Foldable                      (Foldable)
-import           Data.Function                      (($))
+import           Data.Foldable                      (Foldable, any, foldMap)
+import           Data.Function                      (id, ($), (.))
 import           Data.Functor                       ((<$>))
 import           Data.List                          (filter)
 import           Data.Maybe                         (Maybe (..), maybe)
-import           Data.Text                          (Text, isInfixOf, pack)
+import           Data.Monoid                        ((<>))
+import qualified Data.Text                          as Text
+import qualified Data.Text.IO                       as TextIO
+import qualified Data.Text.Lazy                     as LazyText
+import           Lucid                              (body_, renderText)
 import           Prelude                            ()
 import           System.IO                          (IO)
-import           Web.Matrix.Bot.API                 (sendMessage)
-import           Web.Matrix.Dirwatch.ConfigOptions  (coBotUrl, coDirectory,
-                                                     coExclude, coRoomName,
-                                                     readConfigOptions)
-import           Web.Matrix.Dirwatch.Conversion     (convertDirwatchEvents)
+import           Web.Matrix.Dirwatch.Conversion     (IncomingMessage (..),
+                                                     convertDirwatchEvents)
 import           Web.Matrix.Dirwatch.INotify        (Event, NotifyEvent (..),
                                                      eventFilePath,
                                                      makeRelative,
                                                      transformPath, unbuffer,
                                                      watchRecursiveBuffering)
-import           Web.Matrix.Dirwatch.ProgramOptions (poConfigFile,
+import           Web.Matrix.Dirwatch.ProgramOptions (poDirectory, poExclusions,
                                                      readProgramOptions)
+
+incomingMessageToText :: IncomingMessage -> Text.Text
+incomingMessageToText (IncomingMessage plain markup) = (foldMap id (LazyText.toStrict . renderText . body_ <$> markup)) <> plain
 
 none :: Foldable t => (a -> Bool) -> t a -> Bool
 none f x = not (any f x)
 
-eventBlacklist :: [Text] -> NotifyEvent -> Bool
+eventBlacklist :: [Text.Text] -> NotifyEvent -> Bool
 eventBlacklist blacklists (NotifyEvent _ e) =
-  maybe True (\p -> none (`isInfixOf` pack p) blacklists) (eventFilePath e)
+  maybe True (\p -> none (`Text.isInfixOf` Text.pack p) blacklists) (eventFilePath e)
 
 path :: NotifyEvent -> Event
 path (NotifyEvent _ fn) = fn
@@ -38,9 +41,11 @@ path (NotifyEvent _ fn) = fn
 main :: IO ()
 main = do
   options <- readProgramOptions
-  configOptions <- readConfigOptions (options ^. poConfigFile)
-  watcher <- watchRecursiveBuffering (configOptions ^. coDirectory)
+  watcher <- watchRecursiveBuffering (options ^. poDirectory)
   unbuffer watcher $ \events ->
-    case convertDirwatchEvents (transformPath (makeRelative (configOptions ^. coDirectory)) <$> (filter (eventBlacklist (configOptions ^. coExclude)) events)) of
-      Nothing -> return ()
-      Just message -> void $ sendMessage (configOptions ^. coBotUrl) (configOptions ^. coRoomName) message
+    let exclusionTexts = Text.pack <$> (options ^. poExclusions)
+        filtered = filter (eventBlacklist exclusionTexts) events
+    in
+      case convertDirwatchEvents (transformPath (makeRelative (options ^. poDirectory)) <$> filtered) of
+        Nothing      -> pure ()
+        Just message -> TextIO.putStrLn (incomingMessageToText message)

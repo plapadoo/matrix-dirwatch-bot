@@ -1,25 +1,24 @@
 module Web.Matrix.Dirwatch.Conversion
   ( convertDirwatchEvents
+  , IncomingMessage(..)
   ) where
 
-import           Control.Monad                  (mapM_)
-import           Data.Foldable                  (length)
-import           Data.Function                  ((.))
-import           Data.Functor                   ((<$>))
-import           Data.List                      (take)
-import           Data.Maybe                     (Maybe (..), maybe)
-import           Data.Maybe                     (catMaybes)
-import           Data.Monoid                    ((<>))
-import           Data.Ord                       ((>=))
-import qualified Data.Text                      as Text
-import           Data.Text.Format               (Only (..), format)
-import           Data.Text.Lazy                 (toStrict)
-import           Lucid                          (Html, li_, ol_, toHtml)
-import           Prelude                        ()
-import           System.FilePath                ((</>))
-import           Web.Matrix.Bot.IncomingMessage (IncomingMessage,
-                                                 constructIncomingMessage)
-import           Web.Matrix.Dirwatch.INotify    (Event (..), NotifyEvent (..))
+import           Control.Monad               (mapM_)
+import           Data.Foldable               (length)
+import           Data.Function               ((.))
+import           Data.Functor                ((<$>))
+import           Data.List                   (take)
+import           Data.Maybe                  (Maybe (..), catMaybes, maybe)
+import           Data.Monoid                 ((<>))
+import           Data.Ord                    ((>=))
+import qualified Data.Text                   as Text
+import           Data.Text.Format            (Only (..), format)
+import           Data.Text.Lazy              (toStrict)
+import           Lucid                       (Html, li_, ol_, toHtml)
+import           Prelude                     ()
+import           System.FilePath             ((</>))
+import           Text.Show                   (Show)
+import           Web.Matrix.Dirwatch.INotify (Event (..), NotifyEvent (..))
 
 convertEvent :: NotifyEvent -> Maybe Text.Text
 convertEvent (NotifyEvent path event) =
@@ -36,7 +35,10 @@ convertEvent (NotifyEvent path event) =
     Deleted _ fp -> Just ("deleted " <> Text.pack (path </> fp))
     _ -> Nothing
 
-convertDirwatchEvents :: [NotifyEvent] -> Maybe (IncomingMessage Text.Text (Html ()))
+data IncomingMessage = IncomingMessage Text.Text (Maybe (Html ()))
+                     deriving(Show)
+
+convertDirwatchEvents :: [NotifyEvent] -> Maybe IncomingMessage
 convertDirwatchEvents events =
   case catMaybes (convertEvent <$> events) of
     [] -> Nothing
@@ -46,7 +48,7 @@ convertDirwatchEvents events =
           formatMessages msgs =
             case msgs of
               [x] -> toHtml x
-              m  -> ol_ ( mapM_ (li_ . toHtml) m )
+              m   -> ol_ ( mapM_ (li_ . toHtml) m )
           messages = take lengthLimit xs
           wholeMessagePlain =
             if length xs >= lengthLimit
@@ -61,6 +63,6 @@ convertDirwatchEvents events =
             then toHtml (format "{} change(s), showing first {}: " (length xs, lengthLimit)) <> formatMessages xs
             else toHtml (format "{} change(s): " (Only (length xs))) <> formatMessages xs
       in Just
-           (constructIncomingMessage
+           (IncomingMessage
               (toStrict wholeMessagePlain)
               (Just wholeMessage))
