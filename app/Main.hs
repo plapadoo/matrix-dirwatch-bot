@@ -14,7 +14,8 @@ import qualified Data.Text.IO                       as TextIO
 import qualified Data.Text.Lazy                     as LazyText
 import           Lucid                              (body_, renderText)
 import           Prelude                            ()
-import           System.IO                          (IO)
+import           System.IO                          (BufferMode (NoBuffering),
+                                                     IO, hSetBuffering, stdout)
 import           Web.Matrix.Dirwatch.Conversion     (IncomingMessage (..),
                                                      convertDirwatchEvents)
 import           Web.Matrix.Dirwatch.INotify        (Event, NotifyEvent (..),
@@ -42,6 +43,7 @@ main :: IO ()
 main = do
   options <- readProgramOptions
   watcher <- watchRecursiveBuffering (options ^. poDirectory)
+  hSetBuffering stdout NoBuffering
   unbuffer watcher $ \events ->
     let exclusionTexts = Text.pack <$> (options ^. poExclusions)
         filtered = filter (eventBlacklist exclusionTexts) events
