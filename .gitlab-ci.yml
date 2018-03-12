@@ -10,4 +10,4 @@ deploy:
     - sudo docker login -u $USER_REGISTRY -p $PW_REGISTRY $HOST_REGISTRY
     - sudo docker push $HOST_REGISTRY/matrix-dirwatch-nohttp-bot:latest
     - nix-build .
-    - scp result/bin/matrix-dirwatch-exe $SSH_USER@$HOST_WWW:/root/tools
+    - scp result/bin/matrix-dirwatch-exe $SSH_USER@$HOST_WWW:~/tools
