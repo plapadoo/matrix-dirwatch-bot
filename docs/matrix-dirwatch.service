@@ -1,0 +1,7 @@
+[Unit]
+Description=Watch directories and post changes to matrix
+
+[Service]
+Type=simple
+ExecStart=matrix-dirwatch.sh
+RestartSec=5s
