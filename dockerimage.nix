@@ -13,7 +13,7 @@ let
   thisPackage = pkgs.haskellPackages.callCabal2nix "matrix-dirwatch" ./. {};
 in
   pkgs.dockerTools.buildImage {
-    name = "matrix-dirwatch-nohttp-bot";
+    name = "matrix-dirwatch-bot";
     tag = "latest";
     contents = pkgs.haskell.lib.justStaticExecutables thisPackage;
   }
